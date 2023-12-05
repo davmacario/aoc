@@ -79,9 +79,6 @@ def heart_function(lines, curr_values, sol_lst, sol_ind):
                 ranges.append(int(lines[i].split(" ")[2]))
                 i += 1
 
-            if DEBUG:
-                print("> Map obtained!")
-
             # Values stored - invoke function
             values = do_mapping(values, list_in, list_out, ranges)
             last_key = ln.split(" ")[0].split("-")[2]
