@@ -106,79 +106,79 @@ if __name__ == "__main__":
     if Q2:
         with open(in_file) as f:
             lines = [line.rstrip() for line in f]
-
-            i = 0  # Line index
-            last_key = None
             values: list = []
-            while i < len(lines):
-                # Check where we're at - seeds, map (or values)
-                if DEBUG:
-                    print(f"Line {i}")
-                ln = lines[i]
-                if ln.split(" ")[0] == "seeds:":
-                    # 1st line - get seeds
-                    seeds_list = np.array(
-                        [
-                            int(x)
-                            for x in ln.split(":")[1].split(" ")
-                            if x.isalnum()
-                        ]
-                    )
 
-                    seed_start = seeds_list[0::2]
-                    seed_range = seeds_list[1::2]
+            # Extract seed ranges here
+            seed_line = lines[0]
 
-                    assert len(seed_start) == len(seed_range)
+            seeds_list = np.array(
+                [
+                    int(x)
+                    for x in seed_line.split(":")[1].split(" ")
+                    if x.isalnum()
+                ]
+            )
 
-                    for k in range(len(seed_start)):
+            seed_start = seeds_list[0::2]
+            seed_range = seeds_list[1::2]
+
+            assert len(seed_start) == len(seed_range)
+
+            mins = []
+
+            for k in range(len(seed_start)):
+                last_key = "seed"
+
+                values = list(
+                    range(seed_start[k], seed_start[k] + seed_range[k])
+                )
+
+                i = 2  # Line index
+                while i < len(lines):
+                    # Check where we're at - seeds, map (or values)
+                    if DEBUG:
+                        print(f"Line {i}")
+                    ln = lines[i]
+
+                    if (
+                        ln.endswith("map:")
+                        and ln.split(" ")[0].split("-")[0] == last_key
+                    ):
+                        assert values is not None
+
                         if DEBUG:
-                            print(
-                                f"> Curr_range: {seed_start[k]} to {seed_start[k] + seed_range[k]}"
-                            )
-                        values += list(
-                            range(seed_start[k], seed_start[k] + seed_range[k])
+                            print(f"New map: {ln.split(' ')[0]}")
+                        # Map beginning!
+                        list_out = (
+                            []
+                        )  # Will contain the input mapping starting values
+                        list_in = (
+                            []
+                        )  # Will contain the output mapping starting values
+                        ranges = []  # Will contain the ranges
+                        # -> get the values
+                        i += 1
+                        while i < len(lines) and lines[i] != "":
+                            list_out.append(int(lines[i].split(" ")[0]))
+                            list_in.append(int(lines[i].split(" ")[1]))
+                            ranges.append(int(lines[i].split(" ")[2]))
+                            i += 1
+
+                        if DEBUG:
+                            print("> Map obtained!")
+
+                        # Values stored - invoke function
+                        values = do_mapping(values, list_in, list_out, ranges)
+                        last_key = ln.split(" ")[0].split("-")[2]
+                    else:
+                        raise RuntimeError(
+                            f"Shouldn't be here - Line [{i}]:\n{ln}"
                         )
 
-                    last_key = "seed"
                     i += 1
 
-                elif (
-                    ln.endswith("map:")
-                    and ln.split(" ")[0].split("-")[0] == last_key
-                ):
-                    assert values is not None
+                f.close()
 
-                    if DEBUG:
-                        print(f"New map: {ln.split(' ')[0]}")
-                    # Map beginning!
-                    list_out = (
-                        []
-                    )  # Will contain the input mapping starting values
-                    list_in = (
-                        []
-                    )  # Will contain the output mapping starting values
-                    ranges = []  # Will contain the ranges
-                    # -> get the values
-                    i += 1
-                    while i < len(lines) and lines[i] != "":
-                        list_out.append(int(lines[i].split(" ")[0]))
-                        list_in.append(int(lines[i].split(" ")[1]))
-                        ranges.append(int(lines[i].split(" ")[2]))
-                        i += 1
+            mins.append(min(values))
 
-                    if DEBUG:
-                        print("> Map obtained!")
-
-                    # Values stored - invoke function
-                    values = do_mapping(values, list_in, list_out, ranges)
-                    last_key = ln.split(" ")[0].split("-")[2]
-                else:
-                    raise RuntimeError(f"Shouldn't be here - Line [{i}]:\n{ln}")
-
-                i += 1
-
-            f.close()
-
-        print(values)
-
-        print("Sol. Q1:", min(values))
+        print(f"Q2 sol: {min(mins)}")
