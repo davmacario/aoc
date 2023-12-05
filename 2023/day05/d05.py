@@ -178,21 +178,32 @@ if __name__ == "__main__":
 
             mins = [0] * len(seed_start)
 
-            thr_lst = []
+            n_parall_thr = 2
 
-            for k in range(len(seed_start)):
-                vals_k = list(
-                    range(seed_start[k], seed_start[k] + seed_range[k])
-                )
+            for ind in range(int(np.ceil(len(seed_start) / n_parall_thr))):
+                thr_lst = []
 
-                t = threading.Thread(
-                    target=heart_function, args=[lines, vals_k, mins, k]
-                )
-                t.start()
-                thr_lst.append(t)
+                for k in range(
+                    n_parall_thr * ind,
+                    min(len(seed_start), n_parall_thr * (ind + 1)),
+                ):
+                    if DEBUG:
+                        print(
+                            f"Threads {n_parall_thr * ind} to \
+{min(len(seed_start), n_parall_thr * (ind + 1))}"
+                        )
+                    vals_k = list(
+                        range(seed_start[k], seed_start[k] + seed_range[k])
+                    )
 
-            # Wait for threads to finish
-            for th in thr_lst:
-                th.join()
+                    t = threading.Thread(
+                        target=heart_function, args=[lines, vals_k, mins, k]
+                    )
+                    t.start()
+                    thr_lst.append(t)
+
+                # Wait for threads to finish
+                for th in thr_lst:
+                    th.join()
 
         print(f"Q2 sol: {min(mins)}")
