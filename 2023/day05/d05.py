@@ -182,16 +182,16 @@ if __name__ == "__main__":
 
             for ind in range(int(np.ceil(len(seed_start) / n_parall_thr))):
                 thr_lst = []
+                if DEBUG:
+                    print(
+                        f"Threads {n_parall_thr * ind} to \
+{min(len(seed_start), n_parall_thr * (ind + 1))}"
+                    )
 
                 for k in range(
                     n_parall_thr * ind,
                     min(len(seed_start), n_parall_thr * (ind + 1)),
                 ):
-                    if DEBUG:
-                        print(
-                            f"Threads {n_parall_thr * ind} to \
-{min(len(seed_start), n_parall_thr * (ind + 1))}"
-                        )
                     vals_k = list(
                         range(seed_start[k], seed_start[k] + seed_range[k])
                     )
