@@ -3,8 +3,8 @@ def optimize(tm, dst):
     Find number of ways record can be beaten
 
     Args:
-        tm: max. race time
-        dst: record
+        - tm: max. race time
+        - dst: record
     """
     possib = 0
     stop = False
