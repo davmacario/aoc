@@ -4,24 +4,23 @@
 QUESTION = 2
 DEBUG = True
 
-if QUESTION == 1:
-    # Ordered according to increasing strength
-    cards_types = [
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "T",
-        "J",
-        "Q",
-        "K",
-        "A",
-    ]
-elif QUESTION == 2:
+# Ordered according to increasing strength
+cards_types = [
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "T",
+    "J",
+    "Q",
+    "K",
+    "A",
+]
+if QUESTION == 2:
     cards_types = [
         "J",
         "2",
@@ -158,9 +157,8 @@ def rankHands(hands_lst):
         by_type[h] = []
 
     for hand in hands_lst:
-        if QUESTION == 1:
-            by_type[hands_types[evalHandStrength(hand)]].append(hand)
-        elif QUESTION == 2:
+        by_type[hands_types[evalHandStrength(hand)]].append(hand)
+        if QUESTION == 2:
             by_type[hands_types[evalHandStrength_2(hand)]].append(hand)
 
     final_rank = []
@@ -183,20 +181,19 @@ if __name__ == "__main__":
             hands[i] = [str(x) for x in hands[i]]
         bids = [int(ln.split(" ")[1]) for ln in lines]
 
-        if QUESTION == 1:
-            final_ranking = rankHands(hands)
+        final_ranking = rankHands(hands)
 
-            tot_points = 0
-            for i in range(len(final_ranking)):
-                # Rank = len(
-                if DEBUG:
-                    print(
-                        f"{(len(final_ranking) - i)} times {bids[final_ranking[i]]}"
-                    )
-                tot_points += (len(final_ranking) - i) * bids[final_ranking[i]]
+        tot_points = 0
+        for i in range(len(final_ranking)):
+            # Rank = len(
+            if DEBUG:
+                print(
+                    f"{(len(final_ranking) - i)} times {bids[final_ranking[i]]}"
+                )
+            tot_points += (len(final_ranking) - i) * bids[final_ranking[i]]
 
-            print(f"Q1: {tot_points}")
-        elif QUESTION == 2:
+        print(f"Q1: {tot_points}")
+        if QUESTION == 2:
             final_ranking = rankHands(hands)
 
             tot_points = 0
