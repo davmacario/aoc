@@ -208,7 +208,7 @@ def areaFill(
 
 
 if __name__ == "__main__":
-    in_file = "in_mid.txt"
+    in_file = "in.txt"
 
     with open(in_file) as f:
         lines = [line.rstrip() for line in f]
