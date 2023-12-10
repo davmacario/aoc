@@ -209,6 +209,62 @@ def areaFill(
     return matrix
 
 
+def zeroAllAround(mat: NDArray, point: List[int]) -> bool:
+    """
+    Returns True if all the values around (even diagonally) are 0
+
+    Args:
+        mat: matrix to be analyzed
+        point: point to be checked (such that mat in this point is 0)
+
+    Returns:
+        True if all points around are 0, False otherwise
+    """
+    assert mat[point[0], point[1]] == 0
+
+    if point[0] - 1 >= 0 and mat[point[0] - 1, point[1]] != 0:
+        return False
+
+    if point[1] - 1 >= 0 and mat[point[0], point[1] - 1] != 0:
+        return False
+
+    if point[0] + 1 < mat.shape[0] and mat[point[0] + 1, point[1]] != 0:
+        return False
+
+    if point[1] + 1 < mat.shape[0] and mat[point[0], point[1] + 1] != 0:
+        return False
+
+    if (
+        point[0] - 1 >= 0
+        and point[1] - 1 >= 0
+        and mat[point[0] - 1, point[1] - 1] != 0
+    ):
+        return False
+
+    if (
+        point[0] + 1 < mat.shape[0]
+        and point[1] - 1 >= 0
+        and mat[point[0] + 1, point[1] - 1] != 0
+    ):
+        return False
+
+    if (
+        point[0] - 1 >= 0
+        and point[1] + 1 < mat.shape[1]
+        and mat[point[0] - 1, point[1] + 1] != 0
+    ):
+        return False
+
+    if (
+        point[0] + 1 < mat.shape[0]
+        and point[1] + 1 < mat.shape[1]
+        and mat[point[0] + 1, point[1] + 1] != 0
+    ):
+        return False
+
+    return True
+
+
 if __name__ == "__main__":
     in_file = "in.txt"
 
@@ -307,16 +363,16 @@ if __name__ == "__main__":
         mask_ups[ups_path_arr[:, 0], ups_path_arr[:, 1]] = 1
 
         # Zero padding at the boundary
-        mask_ups = np.pad(
-            mask_ups,
-            ((1, 1), (1, 1)),
-            "constant",
-            constant_values=((0, 0), (0, 0)),
-        )
+        # mask_ups = np.pad(
+        #     mask_ups,
+        #     ((1, 1), (1, 1)),
+        #     "constant",
+        #     constant_values=((0, 0), (0, 0)),
+        # )
 
         plt.figure()
         plt.imshow(mask_ups, cmap="gray")
-        plt.show()
+        # plt.show()
 
         out_mask = "out_mask.txt"
         with open(out_mask, "w") as f_out:
@@ -340,9 +396,9 @@ if __name__ == "__main__":
 
         plt.figure()
         plt.imshow(im_fill, cmap="gray")
-        plt.show()
+        # plt.show()
 
-        filled_ups_mat = im_fill
+        filled_ups_mat = im_fill.copy()
 
         out_map = "out_map.txt"
         with open(out_map, "w") as f_out:
@@ -355,3 +411,22 @@ if __name__ == "__main__":
         # Count the values that have not been filled - inside loop, still "0"
         # and if they are completely surrounded by 0 (even diagonally), they
         # were inside before
+        tot_2 = 0
+        for i in range(im_fill.shape[0]):
+            for j in range(im_fill.shape[1]):
+                if im_fill[i, j] == 0:
+                    # Check if 0 all around
+                    if zeroAllAround(im_fill, [i, j]):
+                        filled_ups_mat[i, j] = 200
+                        tot_2 += 1
+
+        # Need to downsample the image by 2
+        im_fill_downsamp = filled_ups_mat[0::2, 0::2]
+
+        plt.figure()
+        plt.imshow(im_fill_downsamp, cmap="gray")
+        plt.show()
+
+        tot_2 = np.sum(im_fill_downsamp == 200, axis=None)
+
+        print(f"Q2 - total inside: {tot_2}")
