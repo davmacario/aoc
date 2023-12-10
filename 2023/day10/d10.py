@@ -4,6 +4,8 @@ import os
 import sys
 from typing import List
 
+import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy._typing import NDArray
 
@@ -295,6 +297,7 @@ if __name__ == "__main__":
                 (double_path[-1][1] + double_path[0][1]) // 2,
             ]
         )
+        ups_path.append([double_path[-1][0], double_path[-1][1]])
 
         ups_path_arr = np.array(ups_path)
 
@@ -311,6 +314,10 @@ if __name__ == "__main__":
             constant_values=((0, 0), (0, 0)),
         )
 
+        plt.figure()
+        plt.imshow(mask_ups, cmap="gray")
+        plt.show()
+
         out_mask = "out_mask.txt"
         with open(out_mask, "w") as f_out:
             for i in range(mask_ups.shape[0]):
@@ -319,9 +326,23 @@ if __name__ == "__main__":
                 f_out.write("\n")
             f_out.close()
 
-        # Fill the matrix starting from (0,0) - recursive function
         first_zero = [0, 0]
-        filled_ups_mat = areaFill(mask_ups, start=(first_zero))
+
+        # Fill the matrix starting from (0,0) - recursive function
+        # filled_ups_mat = areaFill(mask_ups, start=(first_zero))
+
+        # Alternative: use floodfill - opencv
+        im_fill = 255 * mask_ups  # Convert to 0-255
+        mask = np.zeros(
+            (im_fill.shape[0] + 2, im_fill.shape[1] + 2), dtype=np.uint8
+        )
+        cv2.floodFill(im_fill, mask, first_zero, 100)
+
+        plt.figure()
+        plt.imshow(im_fill, cmap="gray")
+        plt.show()
+
+        filled_ups_mat = im_fill
 
         out_map = "out_map.txt"
         with open(out_map, "w") as f_out:
