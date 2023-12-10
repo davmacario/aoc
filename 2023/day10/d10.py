@@ -11,8 +11,6 @@ from numpy._typing import NDArray
 
 DEBUG = True
 
-sys.setrecursionlimit(1000000)
-
 orientations = ["N", "S", "W", "E"]
 wasd = []
 pipes = {
@@ -170,6 +168,7 @@ def getFullPath(
     return path_points
 
 
+# NOTE: not used! Recursion stack grows a lot and this function has been replaced by cv2.floodFill
 def areaFill(
     matrix: NDArray, start: List[int], subst: int = 0, subst_with: int = 2
 ) -> NDArray:
