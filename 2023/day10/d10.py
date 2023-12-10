@@ -325,15 +325,14 @@ if __name__ == "__main__":
         path = getFullPath(chars, pos_start, conn_pipes_pos[0])
         path_arr = np.array(path)
 
-        # Find clever way to isolate the points *inside* the loop...
-        # Use np.ufunc.accumulate to "fill" the contour with "I"
-
-        # First, create a matrix of "0" with ones on the path
-        mat_mask = np.zeros(chars.shape, dtype=np.uint8)
-        mat_mask[path_arr[:, 0], path_arr[:, 1]] = 1
-
+        # ----------------------------------------------------------
+        # Find clever way to isolate the points *inside* the loop
+        # ----------------------------------------------------------
+        # Build a matrix with 1 on the path, 0 otherwise
         # Idea: upsample by 2 the matrix with the mask - need to upsample the
-        # path as well:
+        # path as well
+        # This allows to clearly separate the outside from the inside of the
+        # loop
         double_path = [[2 * p[0], 2 * p[1]] for p in path]
         ups_path = []
         for i in range(1, len(double_path)):
@@ -344,6 +343,8 @@ if __name__ == "__main__":
                     (double_path[i - 1][1] + double_path[i][1]) // 2,
                 ]
             )
+        # Add last element
+        ups_path.append([double_path[-1][0], double_path[-1][1]])
 
         # Add the one completing the path (avg. last and first of double_path)
         ups_path.append(
@@ -352,15 +353,17 @@ if __name__ == "__main__":
                 (double_path[-1][1] + double_path[0][1]) // 2,
             ]
         )
-        ups_path.append([double_path[-1][0], double_path[-1][1]])
 
+        # Make it NDArray (easier to handle)
         ups_path_arr = np.array(ups_path)
 
+        # Assemble upsampled mask
         mask_ups = np.zeros(
             (2 * chars.shape[0], 2 * chars.shape[1]), dtype=np.uint8
         )
         mask_ups[ups_path_arr[:, 0], ups_path_arr[:, 1]] = 1
 
+        # NOTE: not necessary, as cv2.floodFill takes care of this
         # Zero padding at the boundary
         # mask_ups = np.pad(
         #     mask_ups,
@@ -371,6 +374,7 @@ if __name__ == "__main__":
 
         plt.figure()
         plt.imshow(mask_ups, cmap="gray")
+        plt.title("Pipe loop - upsampled")
         # plt.show()
 
         out_mask = "out_mask.txt"
@@ -386,15 +390,17 @@ if __name__ == "__main__":
         # Fill the matrix starting from (0,0) - recursive function
         # filled_ups_mat = areaFill(mask_ups, start=(first_zero))
 
-        # Alternative: use floodfill - opencv
+        # Alternative: use floodfill - opencv (no need to incrase recursion
+        # stack size)
         im_fill = 255 * mask_ups  # Convert to 0-255
-        mask = np.zeros(
+        fill_mask = np.zeros(
             (im_fill.shape[0] + 2, im_fill.shape[1] + 2), dtype=np.uint8
         )
-        cv2.floodFill(im_fill, mask, first_zero, 100)
+        cv2.floodFill(im_fill, fill_mask, first_zero, 100)
 
         plt.figure()
         plt.imshow(im_fill, cmap="gray")
+        plt.title("Flood fill the outside region")
         # plt.show()
 
         filled_ups_mat = im_fill.copy()
@@ -419,11 +425,17 @@ if __name__ == "__main__":
                         filled_ups_mat[i, j] = 200
                         tot_2 += 1
 
+        plt.figure()
+        plt.imshow(filled_ups_mat, cmap="gray")
+        plt.title("Color points inside, but not touching pipe")
+        # plt.show()
+
         # Need to downsample the image by 2
         im_fill_downsamp = filled_ups_mat[0::2, 0::2]
 
         plt.figure()
         plt.imshow(im_fill_downsamp, cmap="gray")
+        plt.title("Downsampled - highlight points inside")
         plt.show()
 
         tot_2 = np.sum(im_fill_downsamp == 200, axis=None)
