@@ -9,7 +9,7 @@ from numpy._typing import NDArray
 
 DEBUG = True
 
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(1000000)
 
 orientations = ["N", "S", "W", "E"]
 wasd = []
