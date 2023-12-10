@@ -311,6 +311,14 @@ if __name__ == "__main__":
             constant_values=((0, 0), (0, 0)),
         )
 
+        out_mask = "out_mask.txt"
+        with open(out_mask, "w") as f_out:
+            for i in range(mask_ups.shape[0]):
+                for j in range(mask_ups.shape[1]):
+                    f_out.write(str(mask_ups[i, j]))
+                f_out.write("\n")
+            f_out.close()
+
         # Fill the matrix starting from (0,0) - recursive function
         first_zero = [0, 0]
         filled_ups_mat = areaFill(mask_ups, start=(first_zero))
@@ -321,6 +329,7 @@ if __name__ == "__main__":
                 for j in range(filled_ups_mat.shape[1]):
                     f_out.write(str(filled_ups_mat[i, j]))
                 f_out.write("\n")
+            f_out.close()
 
         # Count the values that have not been filled - inside loop, still "0"
         # and if they are completely surrounded by 0 (even diagonally), they
