@@ -113,14 +113,14 @@ def findReflectionSmudges(pattern: NDArray, direction: int = 0) -> int:
                 elif not all(pattern[:, i - j] == pattern[:, i + 1 + j]):
                     symm = False
             j += 1
-        if symm and i < pattern.shape[direction] - 1:
+        if symm and i < pattern.shape[direction] - 1 and smudges == 0:
             return i + 1
         i += 1
     return 0
 
 
 if __name__ == "__main__":
-    in_file = "in_small.txt"
+    in_file = "in.txt"
 
     with open(in_file) as f:
         # Isolate the individual patterns
