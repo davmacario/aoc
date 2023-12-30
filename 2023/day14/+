@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+
+from typing import List
+
+import numpy as np
+from numpy._typing import NDArray
+
+if __name__ == "__main__":
+    in_file = "in_small.txt"
+
+    with open(in_file) as f:
+        # Isolate the pattern
+        pattern = []
+        for line in f:
+            ln = line.rstrip()
+            pattern.append([str(x) for x in ln])
+
+        f.close()
+
+
