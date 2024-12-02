@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 	// Iterate over lines of file
 	for scanner.Scan() {
 		line := scanner.Text()
+		// Get array of fields (str)
+		fields := strings.Fields(line)
 	}
 
 	if err := scanner.Err(); err != nil {
