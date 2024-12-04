@@ -56,8 +56,8 @@ func exploreAroundMAS(mat []string, start [2]int) int {
 	y0, x0 := start[0], start[1]
 	diag_1 := [3]string{string(mat[y0+1][x0-1]), "A", string(mat[y0-1][x0+1])}
 	diag_2 := [3]string{string(mat[y0-1][x0-1]), "A", string(mat[y0+1][x0+1])}
-    //fmt.Println(diag_1)
-    //fmt.Println(diag_2)
+	//fmt.Println(diag_1)
+	//fmt.Println(diag_2)
 
 	if (diag_1 == [3]string{"M", "A", "S"} || diag_1 == [3]string{"S", "A", "M"}) &&
 		(diag_2 == [3]string{"M", "A", "S"} || diag_2 == [3]string{"S", "A", "M"}) {
