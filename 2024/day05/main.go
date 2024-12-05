@@ -57,7 +57,6 @@ func fixOrder(line []int, m map[int][]int) []int {
 		return line
 	}
 	i := 1
-	fmt.Println("\nStarting from:", line)
 	for i < len(line) {
 		for j, np := range line[:i] { // j < i
 			if follows(np, line[i], m) {
@@ -65,13 +64,11 @@ func fixOrder(line []int, m map[int][]int) []int {
 				swapF := reflect.Swapper(line)
 				swapF(i, j)
 				i = j
-				fmt.Println(">", line)
 				break
 			}
 		}
 		i++
 	}
-	fmt.Println(">", line)
 	return line
 }
 
