@@ -80,50 +80,43 @@ func removeDiskGaps2(fileSystem []string) []string {
 	i := 0
 	j := len(fileSystem) - 1
 
+	// Find last file (last file: highest id)
 	var file_id string
-
-	k := j
-	for fileSystem[k] == "." {
-		k--
+	for fileSystem[j] == "." {
+		j--
 	}
-	file_id = fileSystem[k]
+	file_id = fileSystem[j]
 	file_id_int, _ := strconv.Atoi(file_id)
 
 	for file_id_int >= 0 {
-		// Go back until file is found
-		for fileSystem[j] != file_id {
+		// Go back until target file is found
+		for j >= 0 && fileSystem[j] != file_id {
 			j--
 		}
 		// Get curr file length
 		j_e := j
-		for fileSystem[j_e] == file_id {
+		for j_e >= 0 && fileSystem[j_e] == file_id {
 			j_e--
-			if j_e < 0 {
-				break
-			}
 		}
 		len_des := j - j_e // Desired block length
 		j_e++
 
-		// Focus on i
-		old_i := i
+		// i - find first gap in filesystem that can fit the desired length
 		i = findGap(fileSystem, 0, len_des)
 		if i < 0 || i > j {
-			// Bring i back
-			i = old_i
-			// decrease j (to empty block)
+			// No gap of that size "earlier"
+			i = 0
+			// decrease j (to first empty block before)
 			j = j_e - 1
 		} else {
-			// Can swap
-			i_e := i + len_des - 1
-
+			// Found space,can swap
 			for k := 0; k < len_des; k++ {
 				functions.SwapChars(fileSystem, i+k, j-k)
 			}
-
-			i = i_e + 1
+            // Jump backwards
 			j = j_e - 1
 		}
+        // Update next target file
 		file_id = strconv.Itoa(file_id_int - 1)
 		file_id_int--
 	}
@@ -175,7 +168,7 @@ func main() {
 	// fmt.Println(line)
 
 	fileSystemStart := getFileSystemString(line)
-	fmt.Println(fileSystemStart)
+	// fmt.Println(fileSystemStart)
 
 	fileSystemSorted1 := removeDiskGaps1(fileSystemStart)
 	ans1 := calcChecksum1(fileSystemSorted1)
