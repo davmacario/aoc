@@ -83,6 +83,46 @@ func part2(stones []string) int {
 	return n_stones_out
 }
 
+// ############################################################################
+// Other (better) solution
+// Much better in terms of memory usage
+func betterSolution(stones []string) int {
+	s_map := make(map[int]int)
+	for _, s := range stones {
+		s_map[functions.StrToInt(s)] += 1
+	}
+	for range NIter2 {
+		s_map = newBlink(s_map)
+	}
+	return nOfStones(s_map)
+}
+
+func newBlink(stones map[int]int) map[int]int {
+	out := make(map[int]int)
+	for k, count := range stones {
+		k_str := strconv.Itoa(k)
+		if k == 0 {
+			// All zeros will become ones
+			out[1] += count
+		} else if len(k_str)%2 == 0 {
+			out[functions.StrToInt(k_str[:len(k_str)/2])] += count
+			out[functions.StrToInt(k_str[len(k_str)/2:])] += count
+		} else {
+			out[k*2024] += count
+		}
+	}
+	return out
+}
+
+func nOfStones(stones map[int]int) int {
+	var out int
+	for _, v := range stones {
+		out += v
+	}
+	return out
+}
+// ############################################################################
+
 func main() {
 	input_file := "./in.txt"
 	f, err := os.Open(input_file)
@@ -106,4 +146,6 @@ func main() {
 	fmt.Println("Part 1:", res1)
 	res2 := part2(stones)
 	fmt.Println("Part 2:", res2)
+	resBetter := betterSolution(stones)
+	fmt.Println("Part 2, better:", resBetter)
 }
