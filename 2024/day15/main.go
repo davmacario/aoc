@@ -241,7 +241,6 @@ func recursiveExplore2(state []string, pos Point, movement Dir, stateMap map[Poi
 
 		if can_move_a && can_move_b {
 			canIMove = true
-			// TODO:
 			// - move the chars on the map
 			new_pt_a := current_box.a.moveInDir(movement)
 			new_pt_b := current_box.b.moveInDir(movement)
@@ -274,12 +273,12 @@ func copyMap(newMap, originalMap map[Point]int) {
 }
 
 func execMovement2(state []string, startPos Point, movement Dir, stateMap map[Point]int, boxesList []Box) (Point, []string, map[Point]int, []Box) {
-    state_bak := make([]string, len(state))
-    copy(state_bak, state)
-    sm_bak := make(map[Point]int)
-    copyMap(sm_bak, stateMap)
-    boxList_bak := make([]Box, len(boxesList))
-    copy(boxList_bak, boxesList)
+	state_bak := make([]string, len(state))
+	copy(state_bak, state)
+	sm_bak := make(map[Point]int)
+	copyMap(sm_bak, stateMap)
+	boxList_bak := make([]Box, len(boxesList))
+	copy(boxList_bak, boxesList)
 	moved := recursiveExplore2(state, startPos.moveInDir(movement), movement, stateMap, boxesList)
 	if moved {
 		// Update position of '@' in state
@@ -287,7 +286,7 @@ func execMovement2(state []string, startPos Point, movement Dir, stateMap map[Po
 		return startPos.moveInDir(movement), state, stateMap, boxesList
 	} else {
 		// Undo all movements
-        return startPos, state_bak, sm_bak, boxList_bak
+		return startPos, state_bak, sm_bak, boxList_bak
 	}
 }
 
@@ -309,7 +308,7 @@ func solve2(state []string, movements string) (ans2 int) {
 		// fmt.Println("\nMovement", i, "-", string(d), dirMap[d])
 		robotPos, newState, stateMap, boxesList = execMovement2(newState, robotPos, dirMap[d], stateMap, boxesList)
 	}
-    // printState(newState)
+	// printState(newState)
 	ans2 = getTotGPS2(boxesList)
 	return ans2
 }
