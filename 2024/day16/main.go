@@ -130,16 +130,6 @@ func getPath(maze []string, pointsMap map[Point]int) (sortedPts []Point) {
 	return out
 }
 
-// func getAllPaths(maze []string, pointsMap map[Point]bool, minCostNeighb map[Point][]Point) int {
-// 	startPos := findStart(maze)
-// 	endPos := findEnd(maze)
-//
-// 	currPt := endPos
-// 	currCost := pointsMap[endPos]
-// 	out := make([]Point, 0)
-// 	out = append([]Point{endPos}, out...)
-// }
-
 func printVisited(maze []string, seenPts []Point) {
 	mazeBak := make([]string, len(maze))
 	copy(mazeBak, maze)
@@ -173,8 +163,6 @@ func part1(maze []string) int {
 	travelQueue.Push(startPos, 0, 0)
 	visitedMinScore := initMapMinScore(maze)
 	visitedMinScore[startPos] = 0
-    // For each point, contains the neighbors from which it can be reached with minimum score
-    allMinScore := make(map[Point][]Point)
 	for travelQueue.Length() > 0 {
 		currPos, givenScore, arrDir, ok := travelQueue.Pop()
 		currScore := visitedMinScore[currPos]
@@ -209,12 +197,7 @@ func part1(maze []string) int {
 					// if nextPos == tgtpt {
 					// 	fmt.Println("From", currPos, "to", nextPos, "moving in direction", i, "coming from direction", arrDir, "New cost", newScore, "increased by", incr)
 					// }
-                    if newScore < visitedMinScore[nextPos] {
-					    visitedMinScore[nextPos] = newScore
-                        allMinScore[nextPos] = []Point{currPos}
-                    } else {
-                        allMinScore[nextPos] = append(allMinScore[nextPos], currPos)
-                    }
+					visitedMinScore[nextPos] = newScore
 					travelQueue.Push(nextPos, newScore, functions.Mod(i+2, len(dirs)))
 				}
 			}
@@ -223,7 +206,6 @@ func part1(maze []string) int {
 		}
 	}
 
-    count_on_path := getAllPaths(maze, visitedMinScore, allMinScore)
 	traversed := getPath(maze, visitedMinScore)
 	// fmt.Println("Path:")
 	// for _, p := range traversed {
