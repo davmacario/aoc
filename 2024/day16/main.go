@@ -5,6 +5,7 @@ import (
 	"day16/functions"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	_ "slices"
 	_ "strings"
@@ -16,6 +17,15 @@ type Point struct {
 
 func (p Point) moveInDir(d Dir) Point {
 	return Point{x: p.x + d.x, y: p.y + d.y}
+}
+
+func (p Point) inSlice(s []Point) int {
+	for i, pt := range s {
+		if p == pt {
+			return i
+		}
+	}
+	return -1
 }
 
 type Dir struct {
@@ -44,9 +54,9 @@ func findEnd(maze []string) (out Point) {
 }
 
 type Queue struct {
-	s []Point
+	s          []Point
 	curr_score []int // matches with q, score up until that point
-	arr_dir []int // Arrival direction
+	arr_dir    []int // Arrival direction
 }
 
 func (s *Queue) Pop() (p Point, sc int, d int, ok bool) {
@@ -67,12 +77,48 @@ func (s *Queue) Pop() (p Point, sc int, d int, ok bool) {
 
 func (s *Queue) Push(p Point, sc int, d int) bool {
 	s.s = append([]Point{p}, s.s...)
-	s.curr_score = append([]int{sc}, s.curr_score ...)
+	s.curr_score = append([]int{sc}, s.curr_score...)
 	s.arr_dir = append([]int{d}, s.arr_dir...)
 	return true
 }
 
 func (s Queue) Length() int {
+	if len(s.s) != len(s.arr_dir) {
+		log.Fatal("Lengths of the slices don't match")
+	}
+	return len(s.s)
+}
+
+type Stack struct {
+	s          []Point
+	curr_score []int // matches with q, score up until that point
+	arr_dir    []int // Arrival direction
+}
+
+func (s *Stack) Pop() (p Point, sc int, d int, ok bool) {
+	if s.Length() < 1 {
+		return p, sc, d, false
+	}
+	p = s.s[len(s.s)-1]
+	s.s = s.s[:len(s.s)-1]
+	sc = s.curr_score[len(s.curr_score)-1]
+	s.curr_score = s.curr_score[:len(s.curr_score)-1]
+	d = s.arr_dir[len(s.arr_dir)-1]
+	s.arr_dir = s.arr_dir[:len(s.arr_dir)-1]
+	if len(s.s) != len(s.arr_dir) {
+		log.Fatal("Lengths of the slices don't match")
+	}
+	return p, sc, d, true
+}
+
+func (s *Stack) Push(p Point, sc int, d int) bool {
+	s.s = append([]Point{p}, s.s...)
+	s.curr_score = append([]int{sc}, s.curr_score...)
+	s.arr_dir = append([]int{d}, s.arr_dir...)
+	return true
+}
+
+func (s Stack) Length() int {
 	if len(s.s) != len(s.arr_dir) {
 		log.Fatal("Lengths of the slices don't match")
 	}
@@ -102,18 +148,13 @@ func getPath(maze []string, pointsMap map[Point]int) (sortedPts []Point) {
 	out := make([]Point, 0)
 	out = append([]Point{endPos}, out...)
 	for currPt != startPos {
-		// fmt.Println(">", currPt)
 		min_cost_around := -1
 		nextPtCandidate := currPt
 		for i := range len(dirs) {
 			nextPt := currPt.moveInDir(dirs[i])
 			nextCost := pointsMap[nextPt]
-			// fmt.Println("  >", i, nextPt, currCost)
-			if nextCost != -1 && nextCost < currCost {
-				if min_cost_around == -1 {
-					min_cost_around = nextCost
-					nextPtCandidate = nextPt
-				} else if nextCost < currCost && nextCost > min_cost_around {
+			if nextCost < currCost {
+				if nextCost < currCost && nextCost > min_cost_around {
 					min_cost_around = nextCost
 					nextPtCandidate = nextPt
 				}
@@ -129,6 +170,69 @@ func getPath(maze []string, pointsMap map[Point]int) (sortedPts []Point) {
 	}
 	return out
 }
+
+// Returns all the paths with minimum cost;
+// Idea: go back from endPos to startPos. Only go back on points with a score <= current point
+// When >1 point
+// Recursion strategy:
+// func getAllPaths(maze []string, startPos Point, endPos Point, pointsMap map[Point]int, comingFrom Point) (sortedPts [][]Point, ok bool) {
+// 	// h := len(maze)
+// 	// w := len(maze[0])
+// 	// cost_upper_bound := h * w * 1000000
+// 	currPt := endPos
+// 	currCost := pointsMap[endPos]
+// 	out := make([]Point, 0)
+// 	out = append([]Point{endPos}, out...)
+// 	// out = append(out, []Point{})
+// 	// out[0] = append([]Point{endPos}, out[0]...)
+// 	for currPt != startPos {
+// 		fmt.Println(currPt)
+// 		nextPtCandidates := make([]Point, 0)
+// 		// Idea: find all neighbors with a lower score
+// 		for i := range len(dirs) {
+// 			nextPt := currPt.moveInDir(dirs[i])
+// 			nextCost := pointsMap[nextPt]
+// 			if nextCost < currCost+1000 {
+// 				if nextPt != comingFrom {
+// 					nextPtCandidates = append(nextPtCandidates, nextPt)
+// 				}
+// 			}
+// 		}
+// 		poi := Point{x: 3, y: 5}
+// 		if currPt == poi {
+// 			// fmt.Println(currCost)
+// 			fmt.Println(nextPtCandidates)
+// 			// fmt.Println(pointsMap[Point{x: 4, y: 7}])
+// 			// log.Fatal()
+// 		}
+// 		// See whether to recur (only 1 candidate) or not
+// 		if len(nextPtCandidates) > 1 { // Will call `return` here
+// 			out_new := make([][]Point, 0)
+// 			for _, npt := range nextPtCandidates {
+// 				pathsRecur, ok := getAllPaths(maze, startPos, npt, pointsMap, currPt)
+// 				if ok {
+// 					for _, pths := range pathsRecur {
+// 						new_best_path := []Point{currPt}
+// 						new_best_path = append(new_best_path, pths...)
+// 						out_new = append(out_new, new_best_path)
+// 					}
+// 				}
+// 			}
+// 			return out_new, len(out_new) > 0
+// 		} else if len(nextPtCandidates) == 1 {
+// 			out = append([]Point{currPt}, out...)
+// 			comingFrom = currPt
+// 			currPt = nextPtCandidates[0]
+// 			currCost = pointsMap[currPt]
+// 		} else {
+// 			return make([][]Point, 0), false
+// 		}
+// 	}
+// 	if currPt == startPos {
+// 		out = append([]Point{startPos}, out...)
+// 	}
+// 	return [][]Point{out}, true
+// }
 
 func printVisited(maze []string, seenPts []Point) {
 	mazeBak := make([]string, len(maze))
@@ -146,7 +250,7 @@ func initMapMinScore(maze []string) map[Point]int {
 	out := make(map[Point]int)
 	for i := 0; i < len(maze); i++ {
 		for j := 0; j < len(maze[0]); j++ {
-			out[Point{x: j, y: i}] = -1
+			out[Point{x: j, y: i}] = len(maze) * len(maze[0]) * 1000000
 		}
 	}
 	return out
@@ -159,23 +263,23 @@ func initMapMinScore(maze []string) map[Point]int {
 func part1(maze []string) int {
 	startPos := findStart(maze)
 	endPos := findEnd(maze)
-	travelQueue := Queue{}
-	travelQueue.Push(startPos, 0, 0)
+	travelStack := Stack{}
+	travelStack.Push(startPos, 0, 0)
 	visitedMinScore := initMapMinScore(maze)
 	visitedMinScore[startPos] = 0
-	for travelQueue.Length() > 0 {
-		currPos, givenScore, arrDir, ok := travelQueue.Pop()
+	currentPath := []Point{}
+	bestPaths := make([][]Point, 0)
+	for travelStack.Length() > 0 {
+		currPos, givenScore, arrDir, ok := travelStack.Pop()
+		currentPath = currentPath[:int(math.Max(float64(currPos.moveInDir(dirs[arrDir]).inSlice(currentPath)), float64(0)))]
+		currentPath = append(currentPath, currPos)
 		currScore := visitedMinScore[currPos]
-		// fmt.Println(currPos, arrDir, currScore)
-
-		// printVisited(maze, []Point{currPos})
-		// fmt.Println("")
 		if ok && currPos != endPos && currScore == givenScore {
-            // Ignore if popped item has higher score than what contained in the map
+			// Ignore if popped item has higher score than what contained in the map
 			for i := 0; i < len(dirs); i++ {
 				nextPos := currPos.moveInDir(dirs[i])
 				newScore := currScore
-                incr := 0
+				incr := 0
 				if i == functions.Mod(arrDir+2, len(dirs)) {
 					// Going straight
 					incr = 1
@@ -187,18 +291,18 @@ func part1(maze []string) int {
 					// Turning 90 deg
 					incr = 1001
 				}
-                newScore += incr
-				if maze[nextPos.y][nextPos.x] != '#' && (visitedMinScore[nextPos] == -1 || newScore <= visitedMinScore[nextPos]) {
-					// fmt.Println("Moving to", nextPos, "with new lowest of", newScore, "(vs. old", visitedMinScore[nextPos], ")")
-					// if nextPos == endPos {
-					// 	fmt.Println("Found better sol:", newScore)
-					// }
-					// tgtpt := Point{x: 6, y: 7}
-					// if nextPos == tgtpt {
-					// 	fmt.Println("From", currPos, "to", nextPos, "moving in direction", i, "coming from direction", arrDir, "New cost", newScore, "increased by", incr)
-					// }
-					visitedMinScore[nextPos] = newScore
-					travelQueue.Push(nextPos, newScore, functions.Mod(i+2, len(dirs)))
+				newScore += incr
+				if maze[nextPos.y][nextPos.x] != '#' && newScore < visitedMinScore[nextPos]+1000 && nextPos.inSlice(currentPath[:len(currentPath)-1]) == -1 {
+					travelStack.Push(nextPos, newScore, functions.Mod(i+2, len(dirs)))
+					if newScore <= visitedMinScore[nextPos] {
+						visitedMinScore[nextPos] = newScore
+						if nextPos == endPos {
+							if newScore < visitedMinScore[nextPos] {
+								bestPaths = make([][]Point, 0)
+							}
+							bestPaths = append(bestPaths, currentPath)
+						}
+					}
 				}
 			}
 		} else if currPos != endPos && currScore == givenScore {
@@ -206,12 +310,13 @@ func part1(maze []string) int {
 		}
 	}
 
+
 	traversed := getPath(maze, visitedMinScore)
-	// fmt.Println("Path:")
-	// for _, p := range traversed {
-	// 	fmt.Println(">", p, "- cost:", visitedMinScore[p])
-	// }
 	printVisited(maze, traversed)
+
+	// Part 2: find all best paths (with same score)
+	// Idea: re-travel the graph using stack, only add node if score < visMinScore[pt] + 1000
+    fmt.Println(bestPaths)
 
 	return visitedMinScore[endPos]
 }
