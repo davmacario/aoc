@@ -18,3 +18,14 @@ func FindInMat(m []string, c rune) (i, j int) {
 	}
 	return -1, -1
 }
+
+// Returns the index of x in slice y. Returns -1 if the element is not found in
+// the slice
+func GetIndex[T comparable](x T, y []T) int {
+	for i, p := range y {
+		if p == x {
+			return i
+		}
+	}
+	return -1
+}
