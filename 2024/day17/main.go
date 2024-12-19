@@ -178,7 +178,7 @@ func main() {
 	n_digits_octal2 := len(input_list)
 	out_str_octal := ""
 	// curr_digit_number := 1
-    start_digit := 0
+	start_digit := 0
 	for len(out_str_octal) < n_digits_octal2 {
 		// Iterate on all octal numbers with 1 digits (0 to 7)
 		len_curr := len(out_str_octal)
@@ -187,8 +187,8 @@ func main() {
 			log.Fatal(err)
 		}
 		for i := start_digit; i < 8; i++ {
-		    fmt.Println(out_str_octal, i)
-            i_oct := strconv.FormatInt(int64(i), 8)
+			fmt.Println(out_str_octal, i)
+			i_oct := strconv.FormatInt(int64(i), 8)
 			i_dec, err := strconv.ParseInt(out_str_octal+i_oct, 8, 0)
 			if err != nil {
 				log.Fatal(err)
@@ -204,16 +204,16 @@ func main() {
 				out_str_octal = out_str_octal + strconv.Itoa(i)
 				fmt.Println(out_str_octal)
 				fmt.Println("matching")
-                start_digit = 0
-                break
+				start_digit = 0
+				break
 			}
 		}
 		if len(out_str_octal) == len_curr {
-            // Remove last digit
-            out_str_octal = out_str_octal[:len(out_str_octal)-1]
-            // Grab second to last digit, it will be starting point for iter
-            start_digit, _ = strconv.Atoi(string(out_str_octal[len(out_str_octal)-1]))
-            fmt.Println("HERE")
+			// Remove last digit
+			out_str_octal = out_str_octal[:len(out_str_octal)-1]
+			// Grab second to last digit, it will be starting point for iter
+			start_digit, _ = strconv.Atoi(string(out_str_octal[len(out_str_octal)-1]))
+			fmt.Println("HERE")
 		}
 	}
 
