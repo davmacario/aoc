@@ -300,6 +300,7 @@ func part2(maze []string) int {
 	currentPath := make([]Point, 0)
 	// Slice of optimal paths - fill it if reaching the end position and score is <= minimum
 	bestPaths := make([][]Point, 0)
+	altSol := make(map[Point]bool)
 	for travelStack.Length() > 0 {
 		currPos, givenScore, arrDir, ok := travelStack.Pop()
 		// fmt.Println(currPos, givenScore)
@@ -345,6 +346,9 @@ func part2(maze []string) int {
 							fmt.Println("found best", newScore)
 							if newScore == 82460 {
 								printVisited(maze, out_cpy)
+								for _, p := range out_cpy {
+									altSol[p] = true
+								}
 							}
 						}
 					}
@@ -379,25 +383,23 @@ func part2(maze []string) int {
 		}
 		// fmt.Println()
 	}
+	printVisited(maze, ptsTouched)
+
 	var check int
 	for i := 0; i < len(maze); i++ {
 		for j := 0; j < len(maze[0]); j++ {
-			if seenDistinct[Point{x: j, y: i}] {
+			if altSol[Point{x: j, y: i}] {
 				check++
 			}
 		}
 	}
-	printVisited(maze, ptsTouched)
-
-	if check != coveredPoints {
-		log.Fatal("Checked: ", check, " - Detected: ", coveredPoints)
-	}
+	fmt.Println("Alt sol", check)
 
 	return coveredPoints
 }
 
 func main() {
-	input_file := "./in_small.txt"
+	input_file := "./in.txt"
 	f, err := os.Open(input_file)
 	if err != nil {
 		log.Fatal(err)
