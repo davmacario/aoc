@@ -215,7 +215,7 @@ func (p Point) InsideBounds(w, h int) bool {
 	return true
 }
 
-// Get slice of points at a distance `d` from `p`
+// Get slice of points at "Manhattan" distance `d` from `p`
 func (p Point) GetPointsAtDist(d int) []Point {
 	totPts := 4 * d
 	pts := make([]Point, 0)
