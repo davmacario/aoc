@@ -54,3 +54,19 @@ func ReverseString(s string) string {
 	}
 	return string(sl)
 }
+
+// Recursively generate all
+func PermutationsOfString(s string) []string {
+	if len(s) == 1 {
+		return []string{s}
+	}
+	out := make([]string, 0)
+	for i, c := range s {
+		remaining := s[:i] + s[i+1:]
+		perm_red := PermutationsOfString(remaining)
+		for _, s := range perm_red {
+			out = append(out, string(c)+s)
+		}
+	}
+	return out
+}

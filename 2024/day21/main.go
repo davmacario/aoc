@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
-	_ "strings"
+	"strings"
 )
 
 // +---+---+---+
@@ -50,65 +50,41 @@ var dir_keypad = map[string]ds.Point{
 }
 
 // Move from point `a` to point `b` minimizing the changes of direction
-// FIXME: no need to modify the changes in direction. Need to find a way to
-// minimize the overall distance between points that need to be traversed to
-// enter the sequence -> <<^ takes "longer" than ^<< because in the former we
-// have to "go back" to ^ after <.
-// This means that we will always "refer" to the dir_keypad
-func MoveInBetweenPoints(a, b, forbidden ds.Point) string {
+func MoveInBetweenPoints(a, b ds.Point) (string, string) {
 	dx := b.GetX() - a.GetX()
 	dy := b.GetY() - a.GetY()
-	dir_lr := ds.MakeDir(f.Sign(dx), 0)
-	dir_ud := ds.MakeDir(0, f.Sign(dy))
+	dir_lr := ds.NewDir(f.Sign(dx), 0)
+	dir_ud := ds.NewDir(0, f.Sign(dy))
 	char_lr := ds.DirToStr[dir_lr]
 	char_ud := ds.DirToStr[dir_ud]
 
-	// New implementation
-	// We know we only have to move along 2 directions (l OR r, u OR d)
-	// starting from A (2, 1), see what of the 2 dirs' key is closer (Manhattan)
-	// Go to that one
-	out := ""
-	n_lr_keys := f.IntAbs(dx)
-	n_ud_keys := f.IntAbs(dy)
-	n_keys_to_be_pressed := n_lr_keys + n_ud_keys
-	pointLR := dir_keypad[string(char_lr)]
-	pointUD := dir_keypad[string(char_ud)]
-	currPt := dir_keypad["A"]
-	for n_keys_to_be_pressed > 0 {
-		// Find closer to currPt between pointLR and pointUD
-		dLR := ds.ManhattanDist(currPt, pointLR)
-		dUD := ds.ManhattanDist(currPt, pointUD)
-		if (dLR < dUD && n_lr_keys > 0) || n_ud_keys <= 0 {
-			// Move towards key for lr position
-			out += string(char_lr)
-			currPt = pointLR
-			n_lr_keys--
-		} else {
-			// Assert still need to move towards UD
-			out += string(char_ud)
-			currPt = pointUD
-			n_ud_keys--
-		}
-		n_keys_to_be_pressed = n_lr_keys + n_ud_keys
-	}
+	substr_lr := strings.Repeat(string(char_lr), f.IntAbs(dx))
+	substr_ud := strings.Repeat(string(char_ud), f.IntAbs(dy))
+	return (substr_lr + substr_ud + "A"), (substr_ud + substr_lr + "A")
+}
 
-	// Try to invert the sequence if you would encounter the forbidden point
-	// I'm sure there is a 100x more efficient way
-	cpt := a
-	ind := 0
-	for cpt != b {
-		next := cpt.MoveInDir(ds.ChToDir[rune(out[ind])])
-		if next == forbidden {
-			fmt.Print("BANG ", out, " ")
-			out = f.ReverseString(out)
-			fmt.Println(out)
-			break
-		}
-		ind++
-		cpt = next
-	}
+// Approach: given the chars to be pressed to move, generate all permutations.
+// Then, select best one based on the cost to be typed (CalcPathCost)
+func MoveInBetweenPoints2(a, b ds.Point) string {
+	dx := b.GetX() - a.GetX()
+	dy := b.GetY() - a.GetY()
+	dir_lr := ds.NewDir(f.Sign(dx), 0)
+	dir_ud := ds.NewDir(0, f.Sign(dy))
+	char_lr := ds.DirToStr[dir_lr]
+	char_ud := ds.DirToStr[dir_ud]
 
-	return out + "A"
+	// Need to place |dx|*char_lr and |dy|*char_ud
+	out := strings.Repeat(string(char_lr), f.IntAbs(dx)) + strings.Repeat(string(char_ud), f.IntAbs(dy))
+	min_score := CalcPathCost(out)
+	all_perm := f.PermutationsOfString(out)
+	for _, s := range all_perm {
+		c_score := CalcPathCost(s)
+		if c_score < min_score {
+			min_score = c_score
+			out = s
+		}
+	}
+	return out
 }
 
 func GoesThroughPoint(movements string, start, p ds.Point) bool {
@@ -120,6 +96,17 @@ func GoesThroughPoint(movements string, start, p ds.Point) bool {
 		currPoint = currPoint.MoveInDir(ds.ChToDir[c])
 	}
 	return false
+}
+
+// Returns the number of operations needed to type a specific path (and insert A after)
+// A + >>^^ + A
+func CalcPathCost(movements string) int {
+	out := len(movements) + 1
+	movements_complete := "A" + movements + "A"
+	for i, c := range movements_complete[:len(movements_complete)-1] {
+		out += ds.ManhattanDist(dir_keypad[string(c)], dir_keypad[string(movements_complete[i+1])])
+	}
+	return out
 }
 
 // IDEA: create functions to translate a string (to be "entered" on a specific
@@ -142,7 +129,6 @@ func GoesThroughPoint(movements string, start, p ds.Point) bool {
 func writeSequenceNum(num_seq string, startFrom string, memo map[string]string) string {
 	out := ""
 	forbidden := ds.NewPoint(0, 0)
-	// Add starting point
 	complete_seq := startFrom + num_seq
 	for i, c := range complete_seq[:len(complete_seq)-1] {
 		curr_pair := string(c) + string(complete_seq[i+1])
@@ -152,9 +138,15 @@ func writeSequenceNum(num_seq string, startFrom string, memo map[string]string) 
 			curr_end := num_keypad[string(complete_seq[i+1])]
 			// Calculate movement (avoiding forbidden position and minimizing
 			// dir changes to minimize input movements on the dir pad)
-			chosenPath := MoveInBetweenPoints(curr_start, curr_end, forbidden)
+			path1, path2 := MoveInBetweenPoints(curr_start, curr_end)
+			// Choose path that does not go through (0,0) OR minimal cost
+			var chosenPath string
+			if GoesThroughPoint(path1, curr_start, forbidden) || CalcPathCost(path2) < CalcPathCost(path1) {
+				chosenPath = path2
+			} else {
+				chosenPath = path1
+			}
 			// Path in memo moves from start to end, then presses enter
-			// Hence, the last key pressed should be 'A'
 			memo[curr_pair] = chosenPath
 		}
 		out += memo[curr_pair]
@@ -174,9 +166,15 @@ func writeSequenceDir(dir_seq string, startFrom string, memo map[string]string) 
 			curr_end := dir_keypad[string(complete_seq[i+1])]
 			// Calculate movement (avoiding forbidden position and minimizing
 			// dir changes to minimize input movements on the dir pad)
-			chosenPath := MoveInBetweenPoints(curr_start, curr_end, forbidden)
+			path1, path2 := MoveInBetweenPoints(curr_start, curr_end)
+			// Choose path that does not go through (0,0) OR minimal cost
+			var chosenPath string
+			if GoesThroughPoint(path1, curr_start, forbidden) || CalcPathCost(path2) < CalcPathCost(path1) {
+				chosenPath = path2
+			} else {
+				chosenPath = path1
+			}
 			// Path in memo moves from start to end, then presses enter
-			// Hence, the last key pressed should be 'A' - done in function
 			memo[curr_pair] = chosenPath
 		}
 		out += memo[curr_pair]
@@ -229,7 +227,7 @@ func solve1(instructions []string) (out int) {
 }
 
 func main() {
-	input_file := "./in_small.txt"
+	input_file := "./in.txt"
 	f, err := os.Open(input_file)
 	if err != nil {
 		log.Fatal(err)

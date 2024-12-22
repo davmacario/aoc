@@ -298,7 +298,7 @@ type Dir struct {
 	x, y int
 }
 
-func MakeDir(x, y int) Dir {
+func NewDir(x, y int) Dir {
 	return Dir{x: x, y: y}
 }
 
