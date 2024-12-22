@@ -70,3 +70,23 @@ func PermutationsOfString(s string) []string {
 	}
 	return out
 }
+
+// Remove element `idx` from slice `s`
+func RemoveFromSlice[T any](s []T, idx int) []T {
+	return append(s[:idx], s[idx+1:]...)
+}
+
+// Calculates how many times the character changes in the string
+func CalcCharChanges(s string) (out int) {
+	if len(s) == 0 {
+		return 0
+	}
+	curr_ch := rune(s[0])
+	for _, c := range s[1:] {
+		if c != curr_ch {
+			out++
+			curr_ch = c
+		}
+	}
+	return out
+}

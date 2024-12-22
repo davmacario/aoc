@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -33,6 +34,20 @@ var num_keypad = map[string]ds.Point{
 	"7": ds.NewPoint(0, 3),
 	"8": ds.NewPoint(1, 3),
 	"9": ds.NewPoint(2, 3),
+}
+
+var num_keypad_min_dist = map[string]string{
+	"AA": "A",
+	"A0": "<A",
+	"A1": "^<<A",
+	"A2": "^<A",
+	"A3": "^A",
+	"A4": "^^<<A",
+	"A5": "",
+	"A6": "",
+	"A7": "",
+	"A8": "",
+	"A9": "",
 }
 
 // +---+---+---+
@@ -65,7 +80,7 @@ func MoveInBetweenPoints(a, b ds.Point) (string, string) {
 
 // Approach: given the chars to be pressed to move, generate all permutations.
 // Then, select best one based on the cost to be typed (CalcPathCost)
-func MoveInBetweenPoints2(a, b ds.Point) string {
+func MoveInBetweenPoints2(a, b, forbidden ds.Point, num bool) string {
 	dx := b.GetX() - a.GetX()
 	dy := b.GetY() - a.GetY()
 	dir_lr := ds.NewDir(f.Sign(dx), 0)
@@ -74,9 +89,23 @@ func MoveInBetweenPoints2(a, b ds.Point) string {
 	char_ud := ds.DirToStr[dir_ud]
 
 	// Need to place |dx|*char_lr and |dy|*char_ud
-	out := strings.Repeat(string(char_lr), f.IntAbs(dx)) + strings.Repeat(string(char_ud), f.IntAbs(dy))
+	tmp := strings.Repeat(string(char_lr), f.IntAbs(dx)) + strings.Repeat(string(char_ud), f.IntAbs(dy))
+	all_perm := f.PermutationsOfString(tmp)
+	// Only keep ones that don't pass through forbidden point
+	var i int
+	for i < len(all_perm) {
+		if GoesThroughPoint(all_perm[i], a, forbidden) {
+			all_perm = f.RemoveFromSlice(all_perm, i)
+		} else {
+			i++
+		}
+	}
+
+	sort.Slice(all_perm, func(i, j int) bool {
+		return f.CalcCharChanges(all_perm[i]) < f.CalcCharChanges(all_perm[j])
+	})
+	out := all_perm[0]
 	min_score := CalcPathCost(out)
-	all_perm := f.PermutationsOfString(out)
 	for _, s := range all_perm {
 		c_score := CalcPathCost(s)
 		if c_score < min_score {
@@ -84,7 +113,7 @@ func MoveInBetweenPoints2(a, b ds.Point) string {
 			out = s
 		}
 	}
-	return out
+	return out + "A"
 }
 
 func GoesThroughPoint(movements string, start, p ds.Point) bool {
@@ -133,24 +162,18 @@ func writeSequenceNum(num_seq string, startFrom string, memo map[string]string) 
 	for i, c := range complete_seq[:len(complete_seq)-1] {
 		curr_pair := string(c) + string(complete_seq[i+1])
 		fmt.Println("Current move:", curr_pair)
-		if memo[curr_pair] == "" {
+		if memo[curr_pair] == "" && curr_pair[0] == curr_pair[1] {
+			memo[curr_pair] = "A"
+		} else if memo[curr_pair] == "" {
 			curr_start := num_keypad[string(c)]
 			curr_end := num_keypad[string(complete_seq[i+1])]
 			// Calculate movement (avoiding forbidden position and minimizing
 			// dir changes to minimize input movements on the dir pad)
-			path1, path2 := MoveInBetweenPoints(curr_start, curr_end)
-			// Choose path that does not go through (0,0) OR minimal cost
-			var chosenPath string
-			if GoesThroughPoint(path1, curr_start, forbidden) || CalcPathCost(path2) < CalcPathCost(path1) {
-				chosenPath = path2
-			} else {
-				chosenPath = path1
-			}
+			chosenPath := MoveInBetweenPoints2(curr_start, curr_end, forbidden, true)
 			// Path in memo moves from start to end, then presses enter
 			memo[curr_pair] = chosenPath
 		}
 		out += memo[curr_pair]
-		// fmt.Println("->", memo[curr_pair], "\n")
 	}
 	return out
 }
@@ -161,19 +184,15 @@ func writeSequenceDir(dir_seq string, startFrom string, memo map[string]string) 
 	complete_seq := startFrom + dir_seq
 	for i, c := range complete_seq[:len(complete_seq)-1] {
 		curr_pair := string(c) + string(complete_seq[i+1])
-		if memo[curr_pair] == "" {
+		// fmt.Println("Current move:", curr_pair)
+		if memo[curr_pair] == "" && curr_pair[0] == curr_pair[1] {
+			memo[curr_pair] = "A"
+		} else if memo[curr_pair] == "" {
 			curr_start := dir_keypad[string(c)]
 			curr_end := dir_keypad[string(complete_seq[i+1])]
 			// Calculate movement (avoiding forbidden position and minimizing
 			// dir changes to minimize input movements on the dir pad)
-			path1, path2 := MoveInBetweenPoints(curr_start, curr_end)
-			// Choose path that does not go through (0,0) OR minimal cost
-			var chosenPath string
-			if GoesThroughPoint(path1, curr_start, forbidden) || CalcPathCost(path2) < CalcPathCost(path1) {
-				chosenPath = path2
-			} else {
-				chosenPath = path1
-			}
+			chosenPath := MoveInBetweenPoints2(curr_start, curr_end, forbidden, false)
 			// Path in memo moves from start to end, then presses enter
 			memo[curr_pair] = chosenPath
 		}
