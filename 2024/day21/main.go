@@ -130,8 +130,8 @@ func GoesThroughPoint(movements string, start, p ds.Point) bool {
 // Returns the number of operations needed to type a specific path (and insert A after)
 // A + >>^^ + A
 func CalcPathCost(movements string) int {
-	out := len(movements) + 1
-	movements_complete := "A" + movements + "A"
+	out := len(movements)
+	movements_complete := movements
 	for i, c := range movements_complete[:len(movements_complete)-1] {
 		out += ds.ManhattanDist(dir_keypad[string(c)], dir_keypad[string(movements_complete[i+1])])
 	}
@@ -212,7 +212,9 @@ func solve1(instructions []string) (out int) {
 	// Memoize, for each consecutive couple of positions (keys) in the sequence
 	// (both on num and dir keypads), the minimum path (as string)
 	memo_num := make(map[string]string)
+	memo_num["37"] = "<<^^A"
 	memo_dir := make(map[string]string) // e.g., ">v" -> "<A"
+	// memo_dir["A<"] = "<v<A"
 
 	for _, inst := range instructions {
 		fmt.Println(inst)
@@ -238,15 +240,15 @@ func solve1(instructions []string) (out int) {
 		fmt.Println()
 	}
 
-	printMemo(memo_num)
-	fmt.Println("")
-	printMemo(memo_dir)
+	// printMemo(memo_num)
+	// fmt.Println("")
+	// printMemo(memo_dir)
 
 	return out
 }
 
 func main() {
-	input_file := "./in.txt"
+	input_file := "./in_test.txt"
 	f, err := os.Open(input_file)
 	if err != nil {
 		log.Fatal(err)
