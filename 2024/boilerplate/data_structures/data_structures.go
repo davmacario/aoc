@@ -287,3 +287,81 @@ var Right = Dir{x: 1, y: 0}
 var Down = Dir{x: 0, y: 1}
 var Left = Dir{x: -1, y: 0}
 var Dirs = []Dir{Left, Up, Right, Down}
+
+// -----------------------------------------------------------------------------
+// Set
+// -----------------------------------------------------------------------------
+// Set implementation in Go - basically Maps from T to bool; true if in set,
+// else false
+
+type Set[T comparable] struct {
+	S map[T]bool
+}
+
+func (s Set[T]) Length() int {
+	return len(s.S)
+}
+
+func NewSet[T comparable](sl []T) *Set[T] {
+	init_s := make(map[T]bool)
+	out := &Set[T]{S: init_s}
+	for _, k := range sl {
+		out.S[k] = true
+	}
+	return out
+}
+
+func (s *Set[T]) GetFirstKey() (T, bool) {
+	for k, v := range s.S {
+		if v {
+			return k, true
+		}
+	}
+	var t T // Empty
+	return t, false
+}
+
+func (s *Set[T]) Add(el T) {
+	s.S[el] = true
+}
+
+func (s *Set[T]) Remove(el T) {
+	delete(s.S, el)
+}
+
+func (s *Set[T]) Contains(el T) bool {
+	_, exists := s.S[el]
+	return exists
+}
+
+func (s *Set[T]) Elements() []T {
+	elements := make([]T, 0, len(s.S))
+	for elem := range s.S {
+		elements = append(elements, elem)
+	}
+	return elements
+}
+
+func SetUnion[T comparable](s, t *Set[T]) *Set[T] {
+	union := NewSet([]T{})
+	for k := range s.S {
+		union.Add(k)
+	}
+	for k := range t.S {
+		union.Add(k)
+	}
+	return union
+}
+
+func SetIntersect[T comparable](s, t *Set[T]) *Set[T] {
+	intersection := NewSet([]T{})
+	if len(t.S) > len(s.S) {
+		s, t = t, s
+	}
+	for k := range s.S {
+		if t.S[k] {
+			intersection.Add(k)
+		}
+	}
+	return intersection
+}
