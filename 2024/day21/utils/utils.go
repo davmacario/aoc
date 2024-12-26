@@ -1,6 +1,8 @@
 package utils
 
-import "unicode"
+import (
+	"unicode"
+)
 
 // Returns the index of element x in slice y.
 // Returns -1 if the element was not found.
@@ -87,6 +89,29 @@ func CalcCharChanges(s string) (out int) {
 			out++
 			curr_ch = c
 		}
+	}
+	return out
+}
+
+func CopyMap[K comparable, V any](m_int map[K]V) map[K]V {
+	out := make(map[K]V)
+	for k, v := range m_int {
+		out[k] = v
+	}
+	return out
+}
+
+type myInt interface {
+	int | int64 | int32 | int16 | int8
+}
+
+func SumSlices[T myInt](s1, s2 []T) []T {
+	if len(s1) != len(s2) {
+		panic("Slice lengths must match!")
+	}
+	out := make([]T, len(s1))
+	for i := 0; i < len(s1); i++ {
+		out[i] = s1[i] + s2[i]
 	}
 	return out
 }
