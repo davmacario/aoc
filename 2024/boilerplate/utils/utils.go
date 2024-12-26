@@ -20,3 +20,20 @@ func Mod(a, b int) int {
 func ReplaceCharInString(s string, i int, c rune) string {
 	return s[:i] + string(c) + s[i+1:]
 }
+
+// Removes element `ind` from slice `sl`. Returns `true` on success (element
+// found and removed)
+func RemoveFromSlice[T comparable](sl []T, ind int) bool {
+	if ind >= len(sl) {
+		return false
+	}
+	sl = append(sl[:ind], sl[ind+1:]...)
+	return true
+}
+
+func ZeroPadLeft(in string, l int) string {
+	for len(in) < l {
+		in = "0" + in
+	}
+	return in
+}
