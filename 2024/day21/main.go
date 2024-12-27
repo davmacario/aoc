@@ -170,7 +170,10 @@ func writeSequenceNum(num_seq string, startFrom string, memoNum map[string]strin
 
 func writeSequenceDir(dir_seq string, startFrom string, memo map[string]string) string {
 	out := ""
-	complete_seq := startFrom + dir_seq
+	complete_seq := dir_seq
+	if string(complete_seq[0]) != startFrom {
+		complete_seq = startFrom + complete_seq
+	}
 	for i, c := range complete_seq[:len(complete_seq)-1] {
 		curr_pair := string(c) + string(complete_seq[i+1])
 		out += MapKeypadMovements(curr_pair, memo)
@@ -189,25 +192,21 @@ func printMemo(m map[string]string) {
 func nextDirRecur(dir_sequence string, n_rec, tot_rec int, memoDirRecur map[string][]int64, memo_dir map[string]string) []int64 {
 	mem, ok := memoDirRecur[dir_sequence]
 	missing_it := tot_rec - n_rec
-	// fmt.Println(missing_it)
 	if missing_it <= 0 {
-		return []int64{int64(len(dir_sequence))}
+		return []int64{int64(len(dir_sequence) - 1)}
 	}
 	if ok && missing_it < len(mem) {
-		// fmt.Println("HERE")
 		return mem[:missing_it+1]
 	} else {
-		next_iter := writeSequenceDir(dir_sequence, "A", memo_dir)
+		next_iter := MapKeypadMovements(dir_sequence, memo_dir)
 		following := make([]int64, missing_it)
-		full_next := next_iter
+		full_next := "A" + next_iter
 		for i, c := range full_next[:len(full_next)-1] {
 			curr_couple := string(c) + string(full_next[i+1])
-			// fmt.Println(curr_couple)
 			follow := nextDirRecur(curr_couple, n_rec+1, tot_rec, memoDirRecur, memo_dir)
-			// fmt.Println(follow)
 			following = f.SumSlices(following, follow)
 		}
-		memoDirRecur[dir_sequence] = append([]int64{int64(len(dir_sequence))}, following...)
+		memoDirRecur[dir_sequence] = append([]int64{int64(len(dir_sequence) - 1)}, following...)
 		return memoDirRecur[dir_sequence]
 	}
 }
@@ -222,8 +221,11 @@ func solve(instructions []string) (out int, out2 int64) {
 	for _, inst := range instructions {
 		fmt.Println(inst)
 		dir_sequence_1 := writeSequenceNum(inst, "A", memo_num)
+		fmt.Println(dir_sequence_1)
 		dir_sequence_2 := writeSequenceDir(dir_sequence_1, "A", memo_dir)
+		fmt.Println(dir_sequence_2)
 		dir_sequence_3 := writeSequenceDir(dir_sequence_2, "A", memo_dir)
+		fmt.Println(dir_sequence_3)
 		// Evaluate complexity for current sequence
 		numericalPart, err := strconv.Atoi(f.GetNumCharsOnly(inst))
 		if err != nil {
@@ -237,30 +239,30 @@ func solve(instructions []string) (out int, out2 int64) {
 
 	// Build map of direction string -> slice of count after i iters
 	memoDirSlice := make(map[string][]int64)
-	for k, v := range memo_dir {
-		memoDirSlice[k] = []int64{int64(len(k)), int64(len(v))}
-	}
 
-	n_iter_2 := 24
+	n_iter_2 := 25 // 25
 	var curr_complex int64
 	for _, inst := range instructions {
 		fmt.Println(inst)
-		for num := range n_iter_2 {
-			dir_sequence := writeSequenceNum(inst, "A", memo_num)
-			complete_seq := "A" + dir_sequence
-			var countKeys int64
-			for i, c := range complete_seq[:len(complete_seq)-1] {
-				curr_pair := string(c) + string(complete_seq[i+1])
-				followers := nextDirRecur(curr_pair, 0, num, memoDirSlice, memo_dir)
-				countKeys += followers[len(followers)-1]
-			}
-			fmt.Println(countKeys)
-			numericalPart, _ := strconv.Atoi(f.GetNumCharsOnly(inst))
-			curr_complex = countKeys * int64(numericalPart)
+		// for num := range n_iter_2 {
+		dir_sequence := writeSequenceNum(inst, "A", memo_num)
+		fmt.Println(dir_sequence)
+		complete_seq := "A" + dir_sequence
+		var countKeys int64
+		for i, c := range complete_seq[:len(complete_seq)-1] {
+			curr_pair := string(c) + string(complete_seq[i+1])
+			followers := nextDirRecur(curr_pair, 0, n_iter_2, memoDirSlice, memo_dir)
+			// fmt.Println(curr_pair, "->", followers, "\n")
+			countKeys += followers[len(followers)-1]
 		}
+		fmt.Println(countKeys)
+		numericalPart, _ := strconv.Atoi(f.GetNumCharsOnly(inst))
+		curr_complex = countKeys * int64(numericalPart)
+		// }
+		out2 += curr_complex
+		fmt.Println()
 	}
 	// fmt.Println("Complexity of", inst, "->", countKeys, "*", numericalPart, "=", curr_complex)
-	out2 += curr_complex
 
 	return out, out2
 }
