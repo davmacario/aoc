@@ -207,3 +207,5 @@ tags
 # Persistent undo
 [._]*.un~
 out*.txt
+
+*.tfstate
