@@ -31,6 +31,7 @@ func RemoveFromSlice[T comparable](sl []T, ind int) bool {
 	return true
 }
 
+// zero pad string `in` on the left until it has a length `l`
 func ZeroPadLeft(in string, l int) string {
 	for len(in) < l {
 		in = "0" + in
