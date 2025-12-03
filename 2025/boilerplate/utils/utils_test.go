@@ -1,5 +1,12 @@
 package utils
 
+/*
+* No, I'm not crazy.
+* I created this test file because I already had this boilerplate test function
+* somewhere else and it was quicker than creating a dedicated main.go to
+* just try out a bunch of test cases for this function :)
+*/
+
 import (
 	"reflect"
 	"testing"
