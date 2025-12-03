@@ -1,5 +1,12 @@
 package utils
 
+import (
+	"cmp"
+	"errors"
+	"log"
+	"strconv"
+)
+
 // Returns the index of element x in slice y.
 // Returns -1 if the element was not found.
 func GetIndex[T comparable](x T, y []T) int {
@@ -73,5 +80,56 @@ func SplitStringEqual(s string, numParts int) []string {
 		out = append(out, s[start:end])
 	}
 
+	return out
+}
+
+// Convert string of digits to slice of integers
+func StringToIntSlice(s string) []int {
+	out := make([]int, len(s))
+	for i := range len(s) {
+		d, err := strconv.Atoi(string(s[i]))
+		if err != nil {
+			log.Fatal(err)
+		}
+		out[i] = d
+	}
+	return out
+}
+
+// Given a slice of comparable items (supporting >, >=, <, <=), return:
+//
+// - Max value
+//
+// - Index of 1st occurrence of max
+//
+// - Optional error, if `len(arr) < 0`
+func MaxWithFirstIndex[T cmp.Ordered](arr []T) (maximum T, index int, err error) {
+	if len(arr) == 0 {
+		err = errors.New("Empty slice of numbers was provided!")
+		return maximum, index, err
+	}
+
+	maximum = arr[0]
+	index = 0
+	for i, num := range arr {
+		if num > maximum {
+			maximum = num
+			index = i
+		}
+	}
+	return maximum, index, nil
+}
+
+// Given a slice of integers, return the integer obtained by appending all of
+// them together (in order)
+func MergeIntSlice(sl []int) int {
+	str := ""
+	for _, d := range sl {
+		str += strconv.Itoa(d)
+	}
+	out, err := strconv.Atoi(str)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return out
 }
