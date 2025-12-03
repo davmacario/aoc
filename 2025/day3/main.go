@@ -2,12 +2,12 @@ package main
 
 import (
 	"bufio"
+	"day3/functions"
+	"day3/utils"
 	"fmt"
 	"log"
 	"os"
 	"strings"
-	"day3/utils"
-	"day3/functions"
 )
 
 func main() {

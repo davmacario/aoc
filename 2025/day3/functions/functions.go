@@ -10,7 +10,7 @@ import (
 // slice. Order is respected.
 // Idea: first digit is max in 0:n-1, second digit is max in `<ind_first>:n`
 func PickTwoBatteries(bank []int) int {
-	digit1, ind1, err := utils.MaxWithFirstIndex(bank[:len(bank) - 1])
+	digit1, ind1, err := utils.MaxWithFirstIndex(bank[:len(bank)-1])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func PickTwelveBatteries(bank []int) int {
 	ind := 0
 	bankLen := len(bank)
 	for i := range 12 {
-		d, new_ind, err := utils.MaxWithFirstIndex(bank[ind:bankLen - (11 - i)])
+		d, new_ind, err := utils.MaxWithFirstIndex(bank[ind : bankLen-(11-i)])
 		if err != nil {
 			log.Fatal(err)
 		}
