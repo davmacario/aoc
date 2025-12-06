@@ -39,12 +39,23 @@ func RemoveFromSlice[T comparable](sl []T, ind int) bool {
 	return true
 }
 
-// zero pad string `in` on the left until it has a length `l`
-func ZeroPadLeft(in string, l int) string {
+func PadLeft(in string, l int, char string) string {
 	for len(in) < l {
-		in = "0" + in
+		in = char + in
 	}
 	return in
+}
+
+func PadRight(in string, l int, char string) string {
+	for len(in) < l {
+		in = in + char
+	}
+	return in
+}
+
+// zero pad string `in` on the left until it has a length `l`
+func ZeroPadLeft(in string, l int) string {
+	return PadLeft(in, l, "0")
 }
 
 // Returns true if all elements of the slice are equal.
@@ -143,4 +154,30 @@ func PrintMatrix[T any](matrix [][]T) {
 		}
 		fmt.Println()
 	}
+}
+
+// Checks if all elements in `nums` are less than `t`
+func AllElementsLT(nums []int, t int) bool {
+	for _, i := range nums {
+		if i >= t {
+			return false
+		}
+	}
+	return true
+}
+
+// return max in slice
+func MaxInSlice[T cmp.Ordered](slice []T) (maximum T, err error) {
+	if len(slice) == 0 {
+		return maximum, errors.New("Provided slice is empty!")
+	}
+
+	maximum = slice[0]
+	for _, num := range slice {
+		if num > maximum {
+			maximum = num
+		}
+	}
+
+	return maximum, nil
 }
