@@ -1,12 +1,31 @@
 package datastructures
 
 import (
-	"day7/utils"
 	"errors"
 	"fmt"
 	"log"
 	"math"
 )
+
+// -----------------------------------------------------------------------------
+// Utils
+// -----------------------------------------------------------------------------
+
+// Replace `i`-th character of string `s` with `c`
+func replaceCharInString(s string, i int, c rune) string {
+	rowRunes := []rune(s)
+	rowRunes[i] = c
+	return string(rowRunes)
+}
+
+// Useful interface
+
+type Number interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+	~float32 | ~float64
+}
+
 
 // -----------------------------------------------------------------------------
 // Stack implementation in Golang
@@ -87,7 +106,7 @@ func (s *Queue[T]) Top() (T, bool) {
 // -----------------------------------------------------------------------------
 type HeapItem struct {
 	p  int
-	el interface{}
+	el any
 }
 
 type Heap struct {
@@ -129,7 +148,7 @@ func childrenInd(i int) (int, int) {
 	return 2*i + 1, 2*i + 2
 }
 
-func (h *Heap) Insert(priority int, item interface{}) {
+func (h *Heap) Insert(priority int, item any) {
 	h.s = append(h.s, HeapItem{p: priority, el: item})
 	ind := len(h.s) - 1
 	parent_ind := parentInd(ind)
@@ -301,7 +320,7 @@ func SetCharInPoint(mat any, p Point, c string) error {
 		if !p.InsideBounds(w, h) {
 			return fmt.Errorf("Point %v is outside bounds (w=%d, h=%d)", p, w, h)
 		}
-		m[p.Y] = utils.ReplaceCharInString(m[p.Y], p.X, r)
+		m[p.Y] = replaceCharInString(m[p.Y], p.X, r)
 		return nil
 	case [][]string:
 		h := len(m)
@@ -423,4 +442,44 @@ func SetIntersect[T comparable](s, t *Set[T]) *Set[T] {
 		}
 	}
 	return intersection
+}
+
+// -----------------------------------------------------------------------------
+// Integer Ranges
+// -----------------------------------------------------------------------------
+
+type Range[T Number] struct {
+	Start, End T
+}
+
+func (r Range[T]) Span() T {
+	return r.End - r.Start + 1
+}
+
+// Returns True if ranges overlap
+func RangesOverlap[T Number](r1, r2 Range[T]) bool {
+	if r1.Start >= r2.Start && r1.Start <= r2.End {
+		return true
+	}
+	if r2.Start >= r1.Start && r2.Start <= r1.End {
+		return true
+	}
+	if r1.End >= r2.Start && r1.End <= r2.End {
+		return true
+	}
+	if r2.End >= r1.Start && r2.End <= r1.End {
+		return true
+	}
+	return false
+}
+
+// Merge ranges `r1` and `r2`.
+//
+// Note: does not check for overlapping!
+func MergeRanges[T Number](r1, r2 Range[T]) Range[T] {
+	return Range[T]{Start: min(r1.Start, r2.Start), End: max(r1.End, r2.End)}
+}
+
+func (r Range[T]) Contains(n T) bool {
+	return n >= r.Start && n <= r.End
 }
