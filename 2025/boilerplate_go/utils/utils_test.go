@@ -67,3 +67,20 @@ func TestSplitStringEqual(t *testing.T) {
 		[]string{"123", "123", "123"},
 		false)
 }
+
+func TestBinarySearchIncreasing(t *testing.T) {
+	run := func(name string, val int, slice []int, want int) {
+		t.Run(name, func(t *testing.T) {
+			got := BinarySearchIncreasing(val, slice)
+
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("got %v, want %v", got, want)
+			}
+		})
+	}
+
+	run("1", 0, []int{0, 1, 2, 4}, 0)
+	run("2", 0, []int{1, 2, 4, 5, 7, 9}, 0)
+	run("3", 3, []int{0, 1, 2, 4}, 3)
+	run("4", 5, []int{0, 1, 2, 4}, 4)
+}

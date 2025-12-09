@@ -183,3 +183,54 @@ func MaxInSlice[T cmp.Ordered](slice []T) (maximum T, err error) {
 
 	return maximum, nil
 }
+
+/*
+*i: 0 1 2 3
+*
+*   0 1 2 4 --- ins 3
+*     ^
+*
+*
+ */
+
+// Returns index where to insert `val` to keep `slice` increasing
+func BinarySearchIncreasing[T cmp.Ordered](val T, slice []T) int {
+	if len(slice) == 0 {
+		return 0
+	}
+	l := 0
+	r := len(slice)
+	var mid int
+	for l < r {
+		mid = (l + r) / 2
+
+		if val > slice[mid] {
+			l = mid
+		} else {
+			r = mid
+		}
+
+		if l == r-1 {
+			if slice[l] >= val {
+				return l
+			}
+			return r
+		}
+	}
+
+	return l
+}
+
+func InsertAtPosition[T any](val T, pos int, slice []T) []T {
+	if pos == 0 {
+		return append([]T{val}, slice...)
+	}
+	if pos == len(slice) {
+		return append(slice, val)
+	}
+	out := make([]T, 0, len(slice)+1)
+	out = append(out, slice[:pos]...)
+	out = append(out, val)
+	out = append(out, slice[pos:]...)
+	return out
+}

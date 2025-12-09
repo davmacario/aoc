@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strconv"
+	"strings"
 )
 
 // -----------------------------------------------------------------------------
@@ -22,10 +24,9 @@ func replaceCharInString(s string, i int, c rune) string {
 
 type Number interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 |
-	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
-	~float32 | ~float64
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+		~float32 | ~float64
 }
-
 
 // -----------------------------------------------------------------------------
 // Stack implementation in Golang
@@ -231,8 +232,8 @@ func (p Point) MoveInDir(d Dir) Point {
 }
 
 // Note:
-//	- w: X dimennsion
-//	- h: Y dimenstion
+//   - w: X dimennsion
+//   - h: Y dimenstion
 func (p Point) InsideBounds(w, h int) bool {
 	if p.X < 0 || p.Y < 0 || p.X >= w || p.Y >= h {
 		return false
@@ -482,4 +483,46 @@ func MergeRanges[T Number](r1, r2 Range[T]) Range[T] {
 
 func (r Range[T]) Contains(n T) bool {
 	return n >= r.Start && n <= r.End
+}
+
+// -----------------------------------------------------------------------------
+// 3D Points (integer)
+// -----------------------------------------------------------------------------
+
+type Point3D[T Number] struct {
+	X, Y, Z T
+}
+
+func PointFromString[T Number](s string) (Point3D[T], error) {
+	sSplit := strings.Split(strings.TrimSpace(s), ",")
+	if len(sSplit) != 3 {
+		return Point3D[T]{}, fmt.Errorf("Expected 3 values, got %d", len(sSplit))
+	}
+
+	parse := func(s string) (T, error) {
+		str := strings.TrimSpace(s)
+		v, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			return 0, err
+		}
+		return T(v), nil
+	}
+
+	x, err := parse(sSplit[0])
+	if err != nil {
+		return Point3D[T]{}, err
+	}
+	y, err := parse(sSplit[1])
+	if err != nil {
+		return Point3D[T]{}, err
+	}
+	z, err := parse(sSplit[2])
+	if err != nil {
+		return Point3D[T]{}, err
+	}
+	return Point3D[T]{X: x, Y: y, Z: z}, nil
+}
+
+func EuclideanDistance[T Number](p1, p2 Point3D[T]) float64 {
+	return math.Sqrt(math.Pow(float64(p1.X-p2.X), 2) + math.Pow(float64(p1.Y-p2.Y), 2) + math.Pow(float64(p1.Z-p2.Z), 2))
 }
